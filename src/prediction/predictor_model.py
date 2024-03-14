@@ -49,6 +49,7 @@ class Forecaster:
             prediction_length=forecast_length,
             num_samples=num_samples,
             temperature=0.0001,
+            limit_prediction_length=False,
         )
 
     def __str__(self):
