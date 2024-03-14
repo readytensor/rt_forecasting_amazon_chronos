@@ -45,7 +45,10 @@ class Forecaster:
     ) -> np.ndarray:
         """Make forecast."""
         return self.model.predict(
-            context=context, prediction_length=forecast_length, num_samples=num_samples
+            context=context,
+            prediction_length=forecast_length,
+            num_samples=num_samples,
+            temperature=0,
         )
 
     def __str__(self):

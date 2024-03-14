@@ -6,6 +6,7 @@ from prediction.predictor_model import predict_with_model
 
 from schema.data_schema import load_json_data_schema
 from utils import (
+    set_seeds,
     read_csv_in_directory,
     read_json_as_dict,
     save_dataframe_as_csv,
@@ -52,6 +53,9 @@ def run_batch_predictions(
 
             logger.info("Loading model config...")
             model_config = read_json_as_dict(model_config_file_path)
+
+            logger.info("Setting seeds...")
+            set_seeds(model_config["seed_value"])
 
             # we need history to make predictions
             logger.info("Loading training data...")
