@@ -1,10 +1,21 @@
-# use an NVIDIA CUDA base image
-FROM nvidia/cuda:12.2.0-runtime-ubuntu20.04 as builder
+# Use an NVIDIA CUDA base image
+FROM nvidia/cuda:12.3.1-runtime-ubuntu20.04 as builder
+
+# Avoid prompts from apt
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install OS dependencies
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     ca-certificates \
     dos2unix \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Git
+RUN apt-get update && \
+    apt-get install -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # install python and pip and add symbolic link to python3
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa
