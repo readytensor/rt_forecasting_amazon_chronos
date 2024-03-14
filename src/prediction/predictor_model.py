@@ -48,7 +48,7 @@ class Forecaster:
             context=context,
             prediction_length=forecast_length,
             num_samples=num_samples,
-            temperature=0,
+            temperature=0.0001,
         )
 
     def __str__(self):
