@@ -39,7 +39,7 @@ class Forecaster:
             pretrained_model_root_path, model_name=model_name
         )
         self.model = ChronosPipeline.from_pretrained(
-            pretrained_model_root_path=os.path.join(pretrained_model_root_path, model_name),
+            pretrained_model_name_or_path=os.path.join(pretrained_model_root_path, model_name),
             device_map=device,
             torch_dtype=torch.bfloat16,
         )
