@@ -31,4 +31,4 @@ if __name__ == "__main__":
     # Example usage
     directory_path = "."  # Replace with your directory path
     model_name = "chronos-t5-tiny" # choose between tiny, mini, small, base and large
-    download_if_not_exists(directory_path, model_name)
+    download_pretrained_model_if_not_exists(directory_path, model_name)
