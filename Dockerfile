@@ -29,12 +29,11 @@ COPY ./requirements.txt /opt/
 RUN python3.9 -m pip install --upgrade pip
 RUN python3.9 -m pip install --no-cache-dir -r /opt/requirements.txt
 
-# Download the pretrained model so it is cached in the image
-ENV MODEL_NAME=chronos-t5-small
-RUN wget https://huggingface.co/amazon/${MODEL_NAME}/resolve/main/config.json -P /opt/src/prediction/pretrained_model/ && \
-    wget https://huggingface.co/amazon/${MODEL_NAME}/resolve/main/generation_config.json -P /opt/src/prediction/pretrained_model/ && \
-    wget https://huggingface.co/amazon/${MODEL_NAME}/resolve/main/pytorch_model.bin -P /opt/src/prediction/pretrained_model/
-
+# Copy model config file and model downloading script into the image
+COPY ./src/config/model_config.json /opt/src/config/model_config.json
+COPY ./src/prediction/download_model.py /opt/src/prediction/download_model.py
+# Download the intended model - we are caching the model in the image
+RUN python /opt/src/prediction/download_model.py
 
 # copy src code into image and chmod scripts
 COPY src ./opt/src
