@@ -1,7 +1,7 @@
 import os
 import requests
 
-def download_pretrained_model_if_not_exists(directory_path, model_name="chronos-t5-tiny"):
+def download_pretrained_model_if_not_exists(directory_path, model_name="chronos-t5-mini"):
     print("Downloading pretrained model...")
     files_urls = {
         "config.json": f"https://huggingface.co/amazon/{model_name}/resolve/main/config.json",

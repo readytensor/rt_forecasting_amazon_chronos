@@ -2,6 +2,8 @@
 
 This is an implementation of the Amazon Chronos forecasting model using the Ready Tensor specifications. Chronos is a family of pretrained time series forecasting models based on language model architectures. For more information, see [Amazon Chronos](https://github.com/amazon-science/chronos-forecasting).
 
+This repository contains branches for each of the 5 models in the Chronos family. The branches are named `tiny`, `mini`, `small`, `base` and `large`. The `main` branch uses the `small` model. To use a different model, switch to the corresponding branch. This branch (`mini`) uses the `chronos-t5-mini` model.
+
 ## Project Description
 
 This repository is a dockerized implementation of the re-usable forecaster model. It is implemented in flexible way so that it can be used with any forecasting dataset with the use of CSV-formatted data, and a JSON-formatted data schema file. The main purpose of this repository is to provide a complete example of a machine learning model implementation that is ready for deployment.
@@ -122,7 +124,7 @@ pip install -r requirements.txt
 
 ## LICENSE
 
-This project is provided under the MIT License. Please see the [LICENSE](LICENSE) file for more information.
+This project is provided under the Apache-2.0 License. Please see the [LICENSE](LICENSE) file for more information.
 
 ## Contact Information
 
