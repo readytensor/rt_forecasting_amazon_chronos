@@ -4,16 +4,16 @@ import numpy as np
 import pandas as pd
 from typing import List, Union
 
+import prediction.download_model
+
 warnings.filterwarnings("ignore")
 
 import torch
 from chronos import ChronosPipeline
 from prediction.download_model import download_pretrained_model_if_not_exists
 
-pretrained_model_path = os.path.join(os.path.dirname(__file__), "pretrained_model")
+pretrained_model_root_path = os.path.join(os.path.dirname(__file__), "pretrained_model")
 
-# download model if not exists
-download_pretrained_model_if_not_exists(pretrained_model_path, model_name="chronos-t5-small")
 
 # Check for GPU availability
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -33,10 +33,15 @@ class Forecaster:
 
     MODEL_NAME = "Chronos_Timeseries_Forecaster"
 
-    def __init__(self, **kwargs):
+    def __init__(self, model_name, **kwargs):
         """Construct a new Chronos Forecaster."""
+        self.model_name = model_name
+        # download model if not exists
+        download_pretrained_model_if_not_exists(
+            pretrained_model_root_path, model_name=model_name
+        )
         self.model = ChronosPipeline.from_pretrained(
-            pretrained_model_path,
+            pretrained_model_root_path=os.path.join(pretrained_model_root_path, model_name),
             device_map=device,
             torch_dtype=torch.bfloat16,
         )
@@ -89,6 +94,7 @@ def preprocess_context(
 
 
 def predict_with_model(
+    model_name: str,
     context: np.ndarray,
     forecast_length: int,
     series_id_col: str,
@@ -111,7 +117,7 @@ def predict_with_model(
     processed_context, ids = preprocess_context(
         context, series_id_col, target_col=target_col
     )
-    model = Forecaster()
+    model = Forecaster(model_name=model_name)
     predictions = model.predict(
         context=processed_context,
         forecast_length=forecast_length,
