@@ -1,7 +1,7 @@
-local_test/ml_vol/
-**/artifacts
-ml_vol/outputs/
+!pretrained_model
+pretrained_model/*
+!pretrained_model/url_list.txt
+!pretrained_model/all_urls.md
 
 docker-compose.yaml
-build_and_push.sh
 venv/

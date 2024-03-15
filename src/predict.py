@@ -78,7 +78,6 @@ def run_batch_predictions(
 
             logger.info("Making predictions...")
             predictions_df = predict_with_model(
-                model_name=model_config["model_name"],
                 num_samples=model_config["num_samples"],
                 context=validated_train_data,
                 forecast_length=data_schema.forecast_length,
