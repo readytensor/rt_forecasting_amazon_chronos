@@ -13,7 +13,7 @@ from prediction.download_model import download_pretrained_model_if_not_exists
 pretrained_model_path = os.path.join(os.path.dirname(__file__), "pretrained_model")
 
 # download model if not exists
-download_pretrained_model_if_not_exists(pretrained_model_path, model_name="chronos-t5-tiny")
+download_pretrained_model_if_not_exists(pretrained_model_path, model_name="chronos-t5-small")
 
 # Check for GPU availability
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
