@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 from typing import List, Union
 
-import prediction.download_model
-
 warnings.filterwarnings("ignore")
 
 import torch
