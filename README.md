@@ -2,7 +2,7 @@
 
 This is an implementation of the Amazon Chronos forecasting model using the Ready Tensor specifications. Chronos is a family of pretrained time series forecasting models based on language model architectures. For more information, see [Amazon Chronos](https://github.com/amazon-science/chronos-forecasting).
 
-This repository contains branches for each of the 5 models in the Chronos family. The branches are named `tiny`, `mini`, `small`, `base` and `large`. The `main` branch uses the `small` model. To use a different model, switch to the corresponding branch. This branch (`small`) uses the `chronos-t5-small` model.
+This repository contains branches for each of the 5 models in the Chronos family. The branches are named `tiny`, `mini`, `small`, `base` and `large`. To use a different model, switch to the corresponding branch. This branch (`main`) uses the `chronos-t5-small` model (the default model).
 
 ## Project Description
 
