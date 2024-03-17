@@ -1,6 +1,5 @@
 {
-  "model_name": "chronos-t5-small",
-  "num_samples": 10,
+  "model_name": "chronos-t5-large",
   "seed_value": 123,
   "prediction_field_name": "prediction"
 }
