@@ -20,6 +20,7 @@ logger = get_logger(task_name="predict")
 def run_batch_predictions(
     input_schema_dir_path: str = paths.INPUT_SCHEMA_DIR,
     model_config_file_path: str = paths.MODEL_CONFIG_FILE_PATH,
+    default_hyperparameters_file_path: str = paths.DEFAULT_HYPERPARAMETERS_FILE_PATH,
     train_dir: str = paths.TRAIN_DIR,
     test_dir: str = paths.TEST_DIR,
     predictions_file_path: str = paths.PREDICTIONS_FILE_PATH,
@@ -35,12 +36,11 @@ def run_batch_predictions(
     and saves the predictions as a CSV file.
 
     Args:
-        saved_schema_dir_path (str): Dir path to the saved data schema.
+        input_schema_dir_path (str): Path to the input schema directory.
         model_config_file_path (str): Path to the model configuration file.
+        default_hyperparameters_file_path (str): Path to the default hyperparameters file.
         train_dir (str): Directory path for the train data.
         test_dir (str): Directory path for the test data.
-        preprocessing_dir_path (str): Path to the saved pipeline file.
-        predictor_file_path (str): Path to the saved predictor model file.
         predictions_file_path (str): Path where the predictions file will be saved.
     """
 
@@ -50,6 +50,11 @@ def run_batch_predictions(
 
             logger.info("Loading schema...")
             data_schema = load_json_data_schema(input_schema_dir_path)
+
+            logger.info("Loading hyperparameters...")
+            default_hyperparameters = read_json_as_dict(
+                default_hyperparameters_file_path
+            )
 
             logger.info("Loading model config...")
             model_config = read_json_as_dict(model_config_file_path)
@@ -79,7 +84,6 @@ def run_batch_predictions(
             logger.info("Making predictions...")
             predictions_df = predict_with_model(
                 model_name=model_config["model_name"],
-                num_samples=model_config["num_samples"],
                 context=validated_train_data,
                 forecast_length=data_schema.forecast_length,
                 series_id_col=data_schema.id_col,
@@ -87,6 +91,7 @@ def run_batch_predictions(
                 target_col=data_schema.target,
                 prediction_field_name=model_config["prediction_field_name"],
                 future_timsteps=validated_test_data[data_schema.time_col],
+                **default_hyperparameters,
             )
 
             logger.info("Validating predictions dataframe...")
