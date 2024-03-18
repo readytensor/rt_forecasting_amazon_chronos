@@ -1,8 +1,12 @@
 import os
 import warnings
+import math
+import joblib
 import numpy as np
 import pandas as pd
-from typing import List, Union
+from typing import List, Union, Dict
+from schema.data_schema import ForecastingSchema
+from logger import get_logger
 
 warnings.filterwarnings("ignore")
 
@@ -10,13 +14,11 @@ import torch
 from chronos import ChronosPipeline
 from prediction.download_model import download_pretrained_model_if_not_exists
 
-pretrained_model_root_path = os.path.join(os.path.dirname(__file__), "pretrained_model")
-
-
+logger = get_logger(task_name=__name__)
 # Check for GPU availability
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-print("device used: ", device)
+logger.info(f"device used: {device}")
 
 PREDICTOR_FILE_NAME = "predictor.joblib"
 MODEL_PARAMS_FNAME = "model_params.save"
@@ -31,120 +33,154 @@ class Forecaster:
 
     MODEL_NAME = "Chronos_Timeseries_Forecaster"
 
-    def __init__(self, model_name, **kwargs):
+    def __init__(
+        self,
+        model_name,
+        data_schema: ForecastingSchema,
+        top_k: float = 50,
+        top_p: float = 1,
+        temperature: float = 0.0001,
+        batch_size: int = 10,
+        num_samples: int = 20,
+        **kwargs,
+    ):
         """Construct a new Chronos Forecaster."""
         self.model_name = model_name
+        self.data_schema = data_schema
+        self.top_k = top_k
+        self.top_p = top_p
+        self.temperature = temperature
+        self.batch_size = batch_size
+        self.num_samples = num_samples
+        self.kwargs = kwargs
+
         # download model if not exists
+        pretrained_model_root_path = os.path.join(
+            os.path.dirname(__file__), "pretrained_model", model_name
+        )
+
         download_pretrained_model_if_not_exists(
             pretrained_model_root_path, model_name=model_name
         )
         self.model = ChronosPipeline.from_pretrained(
-            pretrained_model_name_or_path=os.path.join(
-                pretrained_model_root_path, model_name
-            ),
+            pretrained_model_name_or_path=pretrained_model_root_path,
             device_map=device,
             torch_dtype=torch.bfloat16,
         )
 
-    def fit(self, *args, **kwargs):
+    def fit(self) -> None:
         """Train the model."""
         return None
 
-    def predict(
-        self,
-        context: np.ndarray,
-        forecast_length: int,
-        num_samples: int,
-        temperature: float = 0.0001,
-        top_k: int = 0,
-        top_p: float = 0.0,
-    ) -> np.ndarray:
+    def predict(self, context: List[torch.Tensor]) -> np.ndarray:
         """Make forecast."""
-        return self.model.predict(
-            context=context,
-            prediction_length=forecast_length,
-            num_samples=num_samples,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
-            limit_prediction_length=False,
-        )
+        # we predict in batches to lower memory requirements
+        num_batches = math.ceil(len(context) / self.batch_size)
+        all_predictions = []
+        for i in range(num_batches):
+            logger.info(f"Predicting for batch {i+1} out of {num_batches} batches")
+            batch_context = context[i * self.batch_size : (i + 1) * self.batch_size]
+            batch_predictions = self.model.predict(
+                context=batch_context,
+                prediction_length=self.data_schema.forecast_length,
+                num_samples=self.num_samples,
+                top_k=self.top_k,
+                top_p=self.top_p,
+                temperature=self.temperature,
+                limit_prediction_length=False,
+            )
+            all_predictions.append(batch_predictions)
+
+        all_predictions = np.concatenate(all_predictions)
+        return np.array(all_predictions).mean(axis=1)
+
+    def save(self, model_file_path: str) -> None:
+        """Save the model to the specified directory."""
+        joblib.dump(self, model_file_path)
+
+    @classmethod
+    def load(self, model_file_path: str) -> "Forecaster":
+        """Load the model from the specified directory."""
+        return joblib.load(model_file_path)
 
     def __str__(self):
-        # sort params alphabetically for unit test to run successfully
         return f"Model name: {self.MODEL_NAME}"
 
+    def preprocess_context(
+        self, context: pd.DataFrame
+    ) -> Union[List[torch.Tensor], torch.Tensor]:
+        """Preprocess the context data."""
+        series_id_col = self.data_schema.id_col
+        target_col = self.data_schema.target
 
-def preprocess_context(
-    context: pd.DataFrame, series_id_col: str, target_col: str
-) -> Union[List[torch.tensor], torch.tensor]:
-    """Preprocess the context data."""
+        grouped = context.groupby(series_id_col)
 
-    grouped = context.groupby(series_id_col)
+        all_ids = [i for i, _ in grouped]
+        all_series = [i for _, i in grouped]
 
-    all_ids = [i for i, _ in grouped]
-    all_series = [i for _, i in grouped]
+        if len(all_ids) == 1:
+            processed_context = torch.tensor(
+                all_series[0][target_col].to_numpy().reshape(1, -1)
+            )
 
-    if len(all_ids) == 1:
-        processed_context = torch.tensor(
-            all_series[0][target_col].to_numpy().reshape(1, -1)
-        )
+        else:
+            processed_context = []
+            for series in all_series:
+                series = series[target_col].to_numpy().reshape(1, -1).flatten()
+                series = torch.tensor(series)
+                processed_context.append(series)
 
-    else:
-        processed_context = []
-        for series in all_series:
-            series = series[target_col].to_numpy().reshape(1, -1).flatten()
-            series = torch.tensor(series)
-            processed_context.append(series)
-
-    return processed_context, all_ids
+        return processed_context, all_ids
 
 
 def predict_with_model(
-    model_name: str,
-    context: np.ndarray,
-    forecast_length: int,
-    series_id_col: str,
-    target_col: str,
-    time_col: str,
-    future_timsteps: np.ndarray,
-    prediction_field_name: str,
-    num_samples: int = 20,
-    temperature: float = 0.0001,
-    top_k: int = 50,
-    top_p: float = 1,
-) -> pd.DataFrame:
+    model: Forecaster,
+    context: pd.DataFrame,
+) -> Dict[str, np.ndarray]:
     """
-    Make forecast.
+    Generate forecast.
 
     Args:
-        TBD
+       - model (Forecaster): The predictor model.
+       - context (pd.DataFrame): The context data.
 
     Returns:
-        pd.DataFrame: The forecast.
+       - Dict[str, np.ndarray]: Dictionary with the series id as keys and the forecast as values.
     """
-
-    processed_context, ids = preprocess_context(
-        context, series_id_col, target_col=target_col
-    )
-    model = Forecaster(model_name=model_name)
+    processed_context, ids = model.preprocess_context(context)
     predictions = model.predict(
         context=processed_context,
-        forecast_length=forecast_length,
-        num_samples=num_samples,
-        temperature=temperature,
-        top_k=top_k,
-        top_p=top_p,
     )
-    predictions = np.array(predictions).mean(axis=1)
-    predictions = predictions.flatten()
+    return {k: v for k, v in zip(ids, predictions)}
 
-    generated_ids = [id for id in ids for _ in range(forecast_length)]
-    predictions = pd.DataFrame(
-        {
-            series_id_col: generated_ids,
-            time_col: future_timsteps,
-            prediction_field_name: predictions,
-        }
-    )
-    return predictions
+
+def train_predictor_model(model_name: str, **kwargs) -> Forecaster:
+    """
+    Train the predictor model.
+    Args:
+    - model_name (str): The name of the model to train.
+    - **kwargs: Additional keyword arguments.
+
+    Returns (Forecaster): The predictor model.
+    """
+    model = Forecaster(model_name=model_name, **kwargs)
+    return model
+
+
+def save_predictor_model(model: Forecaster, predictor_file_path: str) -> None:
+    """Save the predictor model to the specified path.
+    Args:
+    - model (Forecaster): The predictor model.
+    - predictor_file_path (str): The path to save the model.
+    Returns: None
+    """
+    model.save(predictor_file_path)
+
+
+def load_predictor_model(predictor_file_path: str) -> Forecaster:
+    """Load the predictor model from the specified path.
+    Args:
+    - predictor_file_path (str): The path to load the model from.
+    Returns (Forecaster): The predictor model.
+    """
+    return Forecaster.load(predictor_file_path)
