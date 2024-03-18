@@ -94,8 +94,10 @@ class Forecaster:
         all_predictions = np.concatenate(all_predictions)
         return np.array(all_predictions).mean(axis=1)
 
-    def save(self, model_file_path: str) -> None:
+    def save(self, model_dir_path: str) -> None:
         """Save the model to the specified directory."""
+        os.makedirs(model_dir_path, exist_ok=True)
+        model_file_path = os.path.join(model_dir_path, PREDICTOR_FILE_NAME)
         joblib.dump(self, model_file_path)
 
     @classmethod
@@ -177,10 +179,11 @@ def save_predictor_model(model: Forecaster, predictor_file_path: str) -> None:
     model.save(predictor_file_path)
 
 
-def load_predictor_model(predictor_file_path: str) -> Forecaster:
+def load_predictor_model(predictor_dir_path: str) -> Forecaster:
     """Load the predictor model from the specified path.
     Args:
-    - predictor_file_path (str): The path to load the model from.
+    - predictor_dir_path (str): The directory path to load the model from.
     Returns (Forecaster): The predictor model.
     """
+    predictor_file_path = os.path.join(predictor_dir_path, PREDICTOR_FILE_NAME)
     return Forecaster.load(predictor_file_path)

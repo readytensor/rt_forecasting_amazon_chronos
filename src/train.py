@@ -11,7 +11,7 @@ logger = get_logger(task_name="train")
 def run_training(
     input_schema_dir_path: str = paths.INPUT_SCHEMA_DIR,
     model_config_file_path: str = paths.MODEL_CONFIG_FILE_PATH,
-    predictor_file_path: str = paths.PREDICTOR_FILE_PATH,
+    predictor_dir_path: str = paths.PREDICTOR_DIR_PATH,
     default_hyperparameters_file_path: str = paths.DEFAULT_HYPERPARAMETERS_FILE_PATH,
 ) -> None:
     """
@@ -19,7 +19,7 @@ def run_training(
     Args:
         - input_schema_dir_path (str): The path to the input schema directory.
         - model_config_file_path (str): The path to the model config file.
-        - predictor_file_path (str): The path to the predictor file.
+        - predictor_dir_path (str): The path to the predictor directory.
         - default_hyperparameters_file_path (str): The path to the default hyperparameters file.
     Returns:
         - None
@@ -54,7 +54,7 @@ def run_training(
 
         # save predictor model
         logger.info("Saving model...")
-        save_predictor_model(model, predictor_file_path)
+        save_predictor_model(model, predictor_dir_path)
 
     except Exception as exc:
         err_msg = "Error occurred during training."
