@@ -31,6 +31,8 @@ SAVED_SCHEMA_DIR_PATH = os.path.join(MODEL_ARTIFACTS_PATH, "schema")
 PREPROCESSING_DIR_PATH = os.path.join(MODEL_ARTIFACTS_PATH, "preprocessing")
 # Name of the predictor model file inside artifacts directory
 PREDICTOR_DIR_PATH = os.path.join(MODEL_ARTIFACTS_PATH, "predictor")
+# Name of the predictor model file inside predictor directory
+PREDICTOR_FILE_PATH = os.path.join(PREDICTOR_DIR_PATH, "predictor.joblib")
 
 # Path to outputs
 OUTPUT_DIR = os.path.join(MODEL_INPUTS_OUTPUTS, "outputs")
