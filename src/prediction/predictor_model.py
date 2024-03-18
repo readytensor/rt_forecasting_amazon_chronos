@@ -32,6 +32,7 @@ class Forecaster:
     """
 
     MODEL_NAME = "Chronos_Timeseries_Forecaster"
+    SERIES_PER_FORECAST = 10
 
     def __init__(
         self,
@@ -40,7 +41,6 @@ class Forecaster:
         top_k: float = 50,
         top_p: float = 1,
         temperature: float = 0.0001,
-        batch_size: int = 10,
         num_samples: int = 20,
         **kwargs,
     ):
@@ -50,7 +50,6 @@ class Forecaster:
         self.top_k = top_k
         self.top_p = top_p
         self.temperature = temperature
-        self.batch_size = batch_size
         self.num_samples = num_samples
         self.kwargs = kwargs
 
@@ -75,11 +74,13 @@ class Forecaster:
     def predict(self, context: List[torch.Tensor]) -> np.ndarray:
         """Make forecast."""
         # we predict in batches to lower memory requirements
-        num_batches = math.ceil(len(context) / self.batch_size)
+        num_batches = math.ceil(len(context) / self.SERIES_PER_FORECAST)
         all_predictions = []
         for i in range(num_batches):
             logger.info(f"Predicting for batch {i+1} out of {num_batches} batches")
-            batch_context = context[i * self.batch_size : (i + 1) * self.batch_size]
+            batch_context = context[
+                i * self.SERIES_PER_FORECAST : (i + 1) * self.SERIES_PER_FORECAST
+            ]
             batch_predictions = self.model.predict(
                 context=batch_context,
                 prediction_length=self.data_schema.forecast_length,
