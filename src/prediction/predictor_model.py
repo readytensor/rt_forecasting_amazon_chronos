@@ -97,6 +97,7 @@ class Forecaster:
 
     def save(self, model_dir_path: str) -> None:
         """Save the model to the specified directory."""
+        self.model = None
         os.makedirs(model_dir_path, exist_ok=True)
         model_file_path = os.path.join(model_dir_path, PREDICTOR_FILE_NAME)
         joblib.dump(self, model_file_path)
@@ -104,7 +105,16 @@ class Forecaster:
     @classmethod
     def load(self, model_file_path: str) -> "Forecaster":
         """Load the model from the specified directory."""
-        return joblib.load(model_file_path)
+        model = joblib.load(model_file_path)
+        pretrained_model_root_path = os.path.join(
+            os.path.dirname(__file__), "pretrained_model", model.model_name
+        )
+        model.model = ChronosPipeline.from_pretrained(
+            pretrained_model_name_or_path=pretrained_model_root_path,
+            device_map=device,
+            torch_dtype=torch.bfloat16,
+        )
+        return model
 
     def __str__(self):
         return f"Model name: {self.MODEL_NAME}"
@@ -186,5 +196,6 @@ def load_predictor_model(predictor_dir_path: str) -> Forecaster:
     - predictor_dir_path (str): The directory path to load the model from.
     Returns (Forecaster): The predictor model.
     """
+
     predictor_file_path = os.path.join(predictor_dir_path, PREDICTOR_FILE_NAME)
     return Forecaster.load(predictor_file_path)
