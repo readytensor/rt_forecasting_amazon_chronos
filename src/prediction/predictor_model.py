@@ -49,7 +49,7 @@ class Forecaster:
         self.data_schema = data_schema
         self.top_k = top_k
         self.top_p = top_p
-        self.temperature = temperature
+        self.temperature = float(temperature)
         self.num_samples = num_samples
         self.kwargs = kwargs
 
