@@ -361,8 +361,8 @@ class MemoryMonitor:
         """Starts the periodic monitoring"""
         if self.timer is not None:
             return  # Prevent multiple timers from starting
-        self.timer = threading.Timer(self.interval, self._schedule_monitor)
-        self.timer.start()
+        self.monitor_memory()  # Initial immediate check
+        self._schedule_monitor()  # Start periodic checks
 
     def stop(self):
         """Stops the periodic monitoring"""
