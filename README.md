@@ -78,7 +78,7 @@ Chronos is a family of timeseries models. The following are the available models
 | chronos-t5-base  |    200M    | t5-efficient-base  |
 | chronos-t5-large |    710M    | t5-efficient-large |
 
-To switch the models when running with Docker, change the environment variable `MODEL_NAME` in the `Dockerfile` to the desired model name.
+To switch the models when running with Docker, change the variable `model_name` in `src/config/model_config.json` to the desired model name.
 
 ### Preparing your data
 
