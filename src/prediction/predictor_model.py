@@ -36,9 +36,9 @@ class Forecaster:
 
     def __init__(
         self,
-        model_name,
+        model_name: str,
         data_schema: ForecastingSchema,
-        top_k: float = 50,
+        top_k: int = 50,
         top_p: float = 1,
         temperature: float = 0.0001,
         num_samples: int = 20,
