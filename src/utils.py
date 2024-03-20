@@ -322,7 +322,7 @@ class ResourceTracker(object):
         self.end_time = time.time()
         self.monitor.stop()
         cuda_peak = get_peak_memory_usage()
-        if cuda_peak:
+        if cuda_peak is not None:
             self.logger.info(f"CUDA Memory allocated (peak): {cuda_peak:.2f} MB")
 
         elapsed_time = self.end_time - self.start_time
