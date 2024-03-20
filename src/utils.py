@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
 import torch as T
+import transformers
 
 
 def read_json_as_dict(input_path: str) -> Dict:
@@ -127,6 +128,7 @@ def set_seeds(seed_value: int) -> None:
         T.cuda.manual_seed_all(seed_value)  # For multi-GPU setups
         T.backends.cudnn.deterministic = True
         T.backends.cudnn.benchmark = False
+        transformers.set_seed(seed_value)
     else:
         raise ValueError(f"Invalid seed value: {seed_value}. Cannot set seeds.")
 
