@@ -4,7 +4,6 @@ from schema.data_schema import load_json_data_schema
 from prediction.predictor_model import train_predictor_model, save_predictor_model
 from utils import ResourceTracker, set_seeds, read_json_as_dict
 
-
 logger = get_logger(task_name="train")
 
 
@@ -44,8 +43,6 @@ def run_training(
                 default_hyperparameters_file_path
             )
 
-            # use default hyperparameters to train model
-            logger.info(f"Training model ({model_config['model_name']})...")
             model = train_predictor_model(
                 model_name=model_config["model_name"],
                 data_schema=data_schema,
