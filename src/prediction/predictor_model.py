@@ -53,26 +53,30 @@ class Forecaster:
         self.num_samples = num_samples
         self.kwargs = kwargs
 
+    def fit(self) -> None:
+        """Train the model."""
+        return None
+
+    def predict(self, context: List[torch.Tensor]) -> np.ndarray:
+        """
+        Generate forecast for future timesteps.
+        Args:
+        - context (List[torch.Tensor]): The context data.
+        Returns (np.ndarray): The forecasted values.
+        """
         # download model if not exists
         pretrained_model_root_path = os.path.join(
-            os.path.dirname(__file__), "pretrained_model", model_name
+            os.path.dirname(__file__), "pretrained_model", self.model_name
         )
 
         download_pretrained_model_if_not_exists(
-            pretrained_model_root_path, model_name=model_name
+            pretrained_model_root_path, model_name=self.model_name
         )
         self.model = ChronosPipeline.from_pretrained(
             pretrained_model_name_or_path=pretrained_model_root_path,
             device_map=device,
             torch_dtype=torch.bfloat16,
         )
-
-    def fit(self) -> None:
-        """Train the model."""
-        return None
-
-    def predict(self, context: List[torch.Tensor]) -> np.ndarray:
-        """Make forecast."""
         # we predict in batches to lower memory requirements
         num_batches = math.ceil(len(context) / self.SERIES_PER_FORECAST)
         all_predictions = []
