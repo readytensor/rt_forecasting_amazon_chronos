@@ -331,23 +331,29 @@ class ResourceTracker(object):
 
 
 class MemoryMonitor:
+    initial_memory = None
     peak_memory = 0  # Class variable to store peak memory usage
 
     def __init__(self, interval=20.0, logger=print):
-        self.interval = interval  # Time between executions in seconds
-        self.timer = None  # Placeholder for the timer object
-        self.logger = logger
+        self.interval = interval
+        self.logger = logger or print
+        self.running = False
+        self.thread = threading.Thread(target=self.monitor_loop)
 
     def monitor_memory(self):
         process = psutil.Process(os.getpid())
-        children = process.children(recursive=True)
         total_memory = process.memory_info().rss
-
-        for child in children:
-            total_memory += child.memory_info().rss
 
         # Check if the current memory usage is a new peak and update accordingly
         MemoryMonitor.peak_memory = max(MemoryMonitor.peak_memory, total_memory)
+        if MemoryMonitor.initial_memory is None:
+            MemoryMonitor.initial_memory = MemoryMonitor.peak_memory
+
+    def monitor_loop(self):
+        """Runs the monitoring process in a loop."""
+        while self.running:
+            self.monitor_memory()
+            time.sleep(self.interval)
 
     def _schedule_monitor(self):
         """Internal method to schedule the next execution"""
@@ -358,19 +364,17 @@ class MemoryMonitor:
             self.timer.start()
 
     def start(self):
-        """Starts the periodic monitoring"""
-        if self.timer is not None:
-            return  # Prevent multiple timers from starting
-        self.monitor_memory()  # Initial immediate check
-        self._schedule_monitor()  # Start periodic checks
+        """Starts the memory monitoring."""
+        if not self.running:
+            self.running = True
+            self.thread.start()
 
     def stop(self):
         """Stops the periodic monitoring"""
-        if self.timer is not None:
-            self.timer.cancel()
-            self.timer = None
+        self.running = False
+        self.thread.join()  # Wait for the monitoring thread to finish
         self.logger.info(
-            f"CPU Memory allocated (peak): {MemoryMonitor.peak_memory / (1024**2):.2f} MB"
+            f"CPU Memory allocated (peak): {(MemoryMonitor.peak_memory - MemoryMonitor.initial_memory)/ (1024**2):.2f} MB"
         )
 
     @classmethod
