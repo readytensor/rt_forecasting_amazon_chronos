@@ -323,11 +323,11 @@ class ResourceTracker(object):
         self.monitor.stop()
         cuda_peak = get_peak_memory_usage()
         if cuda_peak is not None:
-            self.logger.info(f"CUDA Memory allocated (peak): {cuda_peak:.2f} MB")
+            self.logger.info(f"CUDA Memory allocated (peak): {cuda_peak:.3f} MB")
 
         elapsed_time = self.end_time - self.start_time
 
-        self.logger.info(f"Execution time: {elapsed_time:.2f} seconds")
+        self.logger.info(f"Execution time: {elapsed_time:.3f} seconds")
 
 
 class MemoryMonitor:
@@ -374,7 +374,7 @@ class MemoryMonitor:
         self.running = False
         self.thread.join()  # Wait for the monitoring thread to finish
         self.logger.info(
-            f"CPU Memory allocated (peak): {(MemoryMonitor.peak_memory - MemoryMonitor.initial_memory)/ (1024**2):.2f} MB"
+            f"CPU Memory allocated (peak): {(MemoryMonitor.peak_memory - MemoryMonitor.initial_memory)/ (1024**2):.3f} MB"
         )
 
     @classmethod
