@@ -22,12 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY ./requirements.txt /opt/
 RUN python3.9 -m pip install --no-cache-dir -r /opt/requirements.txt
 
-# Copy only the necessary files for downloading the model
-COPY ./src/config/model_config.json /opt/src/config/model_config.json
-COPY ./src/prediction/download_model.py /opt/src/prediction/download_model.py
-
-# Download the intended model - we are caching the model in the image
-RUN python /opt/src/prediction/download_model.py
 
 # Now copy the rest of the src code into the image
 COPY src /opt/src
@@ -40,9 +34,13 @@ RUN chmod +x /opt/entry_point.sh /opt/fix_line_endings.sh && \
 
 # Set working directory and environment variables
 WORKDIR /opt/src
+# Download the intended model - we are caching the model in the image
+RUN python /opt/src/prediction/download_model.py
+
 ENV PYTHONUNBUFFERED=TRUE \
     PYTHONDONTWRITEBYTECODE=TRUE \
     PATH="/opt/src:${PATH}" \
+    PYTHONPATH="/opt/src:${PYTHONPATH}" \
     TORCH_HOME="/opt" \
     MPLCONFIGDIR="/opt" \
     TRANSFORMERS_CACHE="/opt"
