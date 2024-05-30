@@ -64,19 +64,7 @@ class Forecaster:
         - context (List[torch.Tensor]): The context data.
         Returns (np.ndarray): The forecasted values.
         """
-        # download model if not exists
-        pretrained_model_root_path = os.path.join(
-            os.path.dirname(__file__), "pretrained_model", self.model_name
-        )
 
-        download_pretrained_model_if_not_exists(
-            pretrained_model_root_path, model_name=self.model_name
-        )
-        self.model = ChronosPipeline.from_pretrained(
-            pretrained_model_name_or_path=pretrained_model_root_path,
-            device_map=device,
-            torch_dtype=torch.bfloat16,
-        )
         # we predict in batches to lower memory requirements
         num_batches = math.ceil(len(context) / self.SERIES_PER_FORECAST)
         all_predictions = []
@@ -109,12 +97,18 @@ class Forecaster:
     @classmethod
     def load(self, model_file_path: str) -> "Forecaster":
         """Load the model from the specified directory."""
+
         model = joblib.load(model_file_path)
         pretrained_model_root_path = os.path.join(
             os.path.dirname(__file__), "pretrained_model", model.model_name
         )
+
+        download_pretrained_model_if_not_exists(
+            pretrained_model_root_path, model_name=model.model_name
+        )
         model.model = ChronosPipeline.from_pretrained(
-            pretrained_model_name_or_path=pretrained_model_root_path,
+            pretrained_model_name_or_path=f"amazon/{model.model_name}",
+            cache_dir=pretrained_model_root_path,
             device_map=device,
             torch_dtype=torch.bfloat16,
         )

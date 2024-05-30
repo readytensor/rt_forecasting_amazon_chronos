@@ -1,33 +1,10 @@
 import os
-import requests
 import json
+from chronos import ChronosPipeline
 
 
 def download_pretrained_model_if_not_exists(directory_path, model_name):
-    print(f"Downloading pretrained model {model_name}...")
-    files_urls = {
-        "config.json": f"https://huggingface.co/amazon/{model_name}/resolve/main/config.json",
-        "generation_config.json": f"https://huggingface.co/amazon/{model_name}/resolve/main/generation_config.json",
-        "pytorch_model.bin": f"https://huggingface.co/amazon/{model_name}/resolve/main/model.safetensors",
-    }
-
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
-
-    for file_name, url in files_urls.items():
-        file_path = os.path.join(directory_path, file_name)
-        if not os.path.exists(file_path):
-            try:
-                print(f"Downloading {file_name}...")
-                response = requests.get(url, allow_redirects=True, timeout=10)
-                response.raise_for_status()  # Raise an HTTPError for bad responses
-                with open(file_path, 'wb') as f:
-                    f.write(response.content)
-            except requests.RequestException as e:
-                raise ValueError(f"Error downloading pretrained model file from {file_path}.") from e
-        else:
-            print(f"-- {file_name} already exists.")
-
+    ChronosPipeline.from_pretrained(f"amazon/{model_name}", cache_dir=directory_path)
     print(f"Model `{model_name}` is ready.")
 
 
