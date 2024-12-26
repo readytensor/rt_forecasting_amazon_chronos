@@ -343,15 +343,16 @@ class MemoryMonitor:
         return incremental_cpu_peak_memory
 
 
-class ResourceTracker:
+class ResourceTracker(object):
     """
-    This class serves as a context manager to track time, Python-specific,
-    and total system memory allocated by code executed inside it.
+    This class serves as a context manager to track time and
+    memory allocated by code executed inside it.
     """
 
-    def __init__(self, logger, monitoring_interval=0.05):
+    def __init__(self, logger, monitoring_interval, is_train):
         self.logger = logger
-        self.monitor = MemoryMonitor(interval=monitoring_interval)
+        self.is_train = is_train
+        self.monitor = MemoryMonitor(logger=logger, interval=monitoring_interval)
 
     def __enter__(self):
         tracemalloc.start()
@@ -388,6 +389,10 @@ Peak Python Allocated Memory: {peak_python_memory_mb:.2f} MB
 Peak CUDA GPU Memory Usage (Incremental): {gpu_peak_memory_mb:.2f} MB
 Peak System RAM Usage (Incremental): {process_cpu_peak_memory_mb:.2f} MB
 """
-        resources_fpath = os.path.join(paths.OUTPUT_DIR, "resources.txt")
+        if self.is_train:
+            name = "train_resources.txt"
+        else:
+            name = "predict_resources.txt"
+        resources_fpath = os.path.join(paths.OUTPUT_DIR, name)
         with open(resources_fpath, "w") as f:
             f.write(output)
