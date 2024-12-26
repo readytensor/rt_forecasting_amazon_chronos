@@ -11,6 +11,8 @@ import torch
 import tracemalloc
 import transformers
 
+from config import paths
+
 
 def read_json_as_dict(input_path: str) -> Dict:
     """
@@ -379,3 +381,13 @@ class ResourceTracker:
         self.logger.info(
             f"Peak System RAM Usage (Incremental): {process_cpu_peak_memory_mb:.2f} MB"
         )
+
+        output = f"""
+Execution time: {elapsed_time:.2f} seconds
+Peak Python Allocated Memory: {peak_python_memory_mb:.2f} MB
+Peak CUDA GPU Memory Usage (Incremental): {gpu_peak_memory_mb:.2f} MB
+Peak System RAM Usage (Incremental): {process_cpu_peak_memory_mb:.2f} MB
+"""
+        resources_fpath = os.path.join(paths.OUTPUT_DIR, "resources.txt")
+        with open(resources_fpath, "w") as f:
+            f.write(output)
